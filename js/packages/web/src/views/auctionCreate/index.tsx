@@ -61,6 +61,7 @@ export enum AuctionCategory {
   Single,
   Open,
   Tiered,
+  Trading,
 }
 
 interface TierDummyEntry {
@@ -134,12 +135,12 @@ export const AuctionCreateView = () => {
   const [auctionObj, setAuctionObj] =
     useState<
       | {
-          vault: StringPublicKey;
-          auction: StringPublicKey;
-          auctionManager: StringPublicKey;
-        }
+        vault: StringPublicKey;
+        auction: StringPublicKey;
+        auctionManager: StringPublicKey;
+      }
       | undefined
-    >(undefined);
+      >(undefined);
   const [attributes, setAttributes] = useState<AuctionState>({
     reservationPrice: 0,
     items: [],
@@ -194,7 +195,7 @@ export const AuctionCreateView = () => {
         ) {
           item.winningConfigType =
             item.metadata.info.updateAuthority ===
-            (wallet?.publicKey || SystemProgram.programId).toBase58()
+              (wallet ?.publicKey || SystemProgram.programId).toBase58()
               ? WinningConfigType.FullRightsTransfer
               : WinningConfigType.TokenOnlyTransfer;
         }
@@ -202,18 +203,18 @@ export const AuctionCreateView = () => {
           new AmountRange({
             amount: new BN(1),
             length:
-              attributes.category === AuctionCategory.Single
-                ? new BN(1)
-                : new BN(attributes.editions || 1),
+            attributes.category === AuctionCategory.Single
+              ? new BN(1)
+              : new BN(attributes.editions || 1),
           }),
         ];
       }
       winnerLimit = new WinnerLimit({
         type: WinnerLimitType.Capped,
         usize:
-          attributes.category === AuctionCategory.Single
-            ? new BN(1)
-            : new BN(attributes.editions || 1),
+        attributes.category === AuctionCategory.Single
+          ? new BN(1)
+          : new BN(attributes.editions || 1),
       });
 
       if (
@@ -383,17 +384,17 @@ export const AuctionCreateView = () => {
       winners: winnerLimit,
       endAuctionAt: new BN(
         (attributes.auctionDuration || 0) *
-          (attributes.auctionDurationType == 'days'
-            ? 60 * 60 * 24 // 1 day in seconds
-            : attributes.auctionDurationType == 'hours'
+        (attributes.auctionDurationType == 'days'
+          ? 60 * 60 * 24 // 1 day in seconds
+          : attributes.auctionDurationType == 'hours'
             ? 60 * 60 // 1 hour in seconds
             : 60), // 1 minute in seconds
       ), // endAuctionAt is actually auction duration, poorly named, in seconds
       auctionGap: new BN(
         (attributes.gapTime || 0) *
-          (attributes.gapTimeType == 'days'
-            ? 60 * 60 * 24 // 1 day in seconds
-            : attributes.gapTimeType == 'hours'
+        (attributes.gapTimeType == 'days'
+          ? 60 * 60 * 24 // 1 day in seconds
+          : attributes.gapTimeType == 'hours'
             ? 60 * 60 // 1 hour in seconds
             : 60), // 1 minute in seconds
       ),
@@ -418,8 +419,8 @@ export const AuctionCreateView = () => {
       attributes.category === AuctionCategory.Open
         ? []
         : attributes.category !== AuctionCategory.Tiered
-        ? attributes.items
-        : tieredAttributes.items,
+          ? attributes.items
+          : tieredAttributes.items,
       attributes.category === AuctionCategory.Open
         ? attributes.items[0]
         : attributes.participationNFT,
@@ -573,37 +574,37 @@ export const AuctionCreateView = () => {
 
   return (
     <>
-      <Row style={{ paddingTop: 50 }}>
-        {stepsVisible && (
-          <Col span={24} md={4}>
-            <Steps
-              progressDot
-              direction={width < 768 ? 'horizontal' : 'vertical'}
-              current={step}
-              style={{
-                width: 'fit-content',
-                margin: '0 auto 30px auto',
-                overflowX: 'auto',
-                maxWidth: '100%',
-              }}
-            >
-              {stepsByCategory[attributes.category]
-                .filter(_ => !!_[0])
-                .map((step, idx) => (
-                  <Step title={step[0]} key={idx} />
-                ))}
-            </Steps>
-          </Col>
-        )}
-        <Col span={24} {...(stepsVisible ? { md: 20 } : { md: 24 })}>
-          {stepsByCategory[attributes.category][step][1]}
-          {0 < step && stepsVisible && (
-            <div style={{ margin: 'auto', width: 'fit-content' }}>
-              <Button onClick={() => gotoNextStep(step - 1)}>Back</Button>
-            </div>
-          )}
+    <Row style={{ paddingTop: 50 }}>
+      {stepsVisible && (
+        <Col span={24} md={4}>
+          <Steps
+            progressDot
+            direction={width < 768 ? 'horizontal' : 'vertical'}
+            current={step}
+            style={{
+              width: 'fit-content',
+              margin: '0 auto 30px auto',
+              overflowX: 'auto',
+              maxWidth: '100%',
+            }}
+          >
+            {stepsByCategory[attributes.category]
+              .filter(_ => !!_[0])
+              .map((step, idx) => (
+                <Step title={step[0]} key={idx} />
+              ))}
+          </Steps>
         </Col>
-      </Row>
+      )}
+      <Col span={24} {...(stepsVisible ? { md: 20 } : { md: 24 }) }>
+        {stepsByCategory[attributes.category][step][1]}
+        {0 < step && stepsVisible && (
+          <div style={{ margin: 'auto', width: 'fit-content' }}>
+            <Button onClick={() => gotoNextStep(step - 1)}>Back</Button>
+          </div>
+        )}
+      </Col>
+    </Row>
     </>
   );
 };
@@ -614,74 +615,89 @@ const CategoryStep = (props: {
   const { width } = useWindowDimensions();
   return (
     <>
-      <Row className="call-to-action">
-        <h2>List an item</h2>
-        <p>
-          First time listing on Metaplex? <a>Read our sellers' guide.</a>
-        </p>
-      </Row>
-      <Row justify={width < 768 ? 'center' : 'start'}>
-        <Col>
-          <Row>
-            <Button
-              className="type-btn"
-              size="large"
-              onClick={() => props.confirm(AuctionCategory.Limited)}
-            >
-              <div>
-                <div>Limited Edition</div>
-                <div className="type-btn-description">
-                  Sell a limited copy or copies of a single Master NFT
+    <Row className="call-to-action">
+      <h2>List an item</h2>
+      <p>
+        First time listing on Metaplex? <a>Read our sellers' guide.</a>
+      </p>
+    </Row>
+    <Row justify={width < 768 ? 'center' : 'start'}>
+      <Col>
+        <Row>
+          <Button
+            className="type-btn"
+            size="large"
+            onClick={() => props.confirm(AuctionCategory.Limited)}
+          >
+            <div>
+              <div>Limited Edition</div>
+              <div className="type-btn-description">
+                Sell a limited copy or copies of a single Master NFT
                 </div>
-              </div>
-            </Button>
-          </Row>
-          <Row>
-            <Button
-              className="type-btn"
-              size="large"
-              onClick={() => props.confirm(AuctionCategory.Open)}
-            >
-              <div>
-                <div>Open Edition</div>
-                <div className="type-btn-description">
-                  Sell unlimited copies of a single Master NFT
+            </div>
+          </Button>
+        </Row>
+        <Row>
+          <Button
+            className="type-btn"
+            size="large"
+            onClick={() => props.confirm(AuctionCategory.Open)}
+          >
+            <div>
+              <div>Open Edition</div>
+              <div className="type-btn-description">
+                Sell unlimited copies of a single Master NFT
                 </div>
-              </div>
-            </Button>
-          </Row>
-          <Row>
-            <Button
-              className="type-btn"
-              size="large"
-              onClick={() => props.confirm(AuctionCategory.Tiered)}
-            >
-              <div>
-                <div>Tiered Auction</div>
-                <div className="type-btn-description">
-                  Participants get unique rewards based on their leaderboard
+            </div>
+          </Button>
+        </Row>
+        <Row>
+          <Button
+            className="type-btn"
+            size="large"
+            onClick={() => props.confirm(AuctionCategory.Tiered)}
+          >
+            <div>
+              <div>Tiered Auction</div>
+              <div className="type-btn-description">
+                Participants get unique rewards based on their leaderboard
                   rank
                 </div>
-              </div>
-            </Button>
-          </Row>
-          <Row>
-            <Button
-              className="type-btn"
-              size="large"
-              onClick={() => props.confirm(AuctionCategory.Single)}
-            >
-              <div>
-                <div>Sell an Existing Item</div>
-                <div className="type-btn-description">
-                  Sell an existing item in your NFT collection, including Master
+            </div>
+          </Button>
+        </Row>
+        <Row>
+          <Button
+            className="type-btn"
+            size="large"
+            onClick={() => props.confirm(AuctionCategory.Single)}
+          >
+            <div>
+              <div>Sell an Existing Item</div>
+              <div className="type-btn-description">
+                Sell an existing item in your NFT collection, including Master
                   NFTs
                 </div>
-              </div>
-            </Button>
-          </Row>
-        </Col>
-      </Row>
+            </div>
+          </Button>
+        </Row>
+        <Row>
+          <Button
+            className="type-btn"
+            size="large"
+            onClick={() => props.confirm(AuctionCategory.Trading)}
+          >
+            <div>
+              <div>Trade Existing Item</div>
+              <div className="type-btn-description">
+                Trade an existing item in your NFT collection, including Master
+                  NFTs
+                </div>
+            </div>
+          </Button>
+        </Row>
+      </Col>
+    </Row>
     </>
   );
 };
@@ -711,60 +727,60 @@ const CopiesStep = (props: {
 
   return (
     <>
-      <Row className="call-to-action" style={{ marginBottom: 0 }}>
-        <h2>Select which item to sell</h2>
-        <p style={{ fontSize: '1.2rem' }}>
-          Select the item(s) that you want to list.
+    <Row className="call-to-action" style={{ marginBottom: 0 }}>
+      <h2>Select which item to sell</h2>
+      <p style={{ fontSize: '1.2rem' }}>
+        Select the item(s) that you want to list.
         </p>
-      </Row>
-      <Row className="content-action">
-        <Col xl={24}>
-          <ArtSelector
-            filter={overallFilter}
-            selected={props.attributes.items}
-            setSelected={items => {
-              props.setAttributes({ ...props.attributes, items });
-            }}
-            allowMultiple={false}
-          >
-            Select NFT
-          </ArtSelector>
-          {props.attributes.category === AuctionCategory.Limited && (
-            <label className="action-field">
-              <span className="field-title">
-                How many copies do you want to create?
-              </span>
-              <span className="field-info">
-                Each copy will be given unique edition number e.g. 1 of 30
-              </span>
-              <Input
-                autoFocus
-                className="input"
-                placeholder="Enter number of copies sold"
-                allowClear
-                onChange={info =>
-                  props.setAttributes({
-                    ...props.attributes,
-                    editions: parseInt(info.target.value),
-                  })
-                }
-              />
-            </label>
-          )}
-        </Col>
-      </Row>
-      <Row>
-        <Button
-          type="primary"
-          size="large"
-          onClick={() => {
-            props.confirm();
+    </Row>
+    <Row className="content-action">
+      <Col xl={24}>
+        <ArtSelector
+          filter={overallFilter}
+          selected={props.attributes.items}
+          setSelected={items => {
+            props.setAttributes({ ...props.attributes, items });
           }}
-          className="action-btn"
+          allowMultiple={false}
         >
-          Continue to Terms
+          Select NFT
+          </ArtSelector>
+        {props.attributes.category === AuctionCategory.Limited && (
+          <label className="action-field">
+            <span className="field-title">
+              How many copies do you want to create?
+              </span>
+            <span className="field-info">
+              Each copy will be given unique edition number e.g. 1 of 30
+              </span>
+            <Input
+              autoFocus
+              className="input"
+              placeholder="Enter number of copies sold"
+              allowClear
+              onChange={info =>
+                props.setAttributes({
+                  ...props.attributes,
+                  editions: parseInt(info.target.value),
+                })
+              }
+            />
+          </label>
+        )}
+      </Col>
+    </Row>
+    <Row>
+      <Button
+        type="primary"
+        size="large"
+        onClick={() => {
+          props.confirm();
+        }}
+        className="action-btn"
+      >
+        Continue to Terms
         </Button>
-      </Row>
+    </Row>
     </>
   );
 };
@@ -776,44 +792,44 @@ const NumberOfWinnersStep = (props: {
 }) => {
   return (
     <>
-      <Row className="call-to-action">
-        <h2>Tiered Auction</h2>
-        <p>Create a Tiered Auction</p>
-      </Row>
-      <Row className="content-action">
-        <Col className="section" xl={24}>
-          <label className="action-field">
-            <span className="field-title">
-              How many participants can win the auction?
+    <Row className="call-to-action">
+      <h2>Tiered Auction</h2>
+      <p>Create a Tiered Auction</p>
+    </Row>
+    <Row className="content-action">
+      <Col className="section" xl={24}>
+        <label className="action-field">
+          <span className="field-title">
+            How many participants can win the auction?
             </span>
-            <span className="field-info">
-              This is the number of spots in the leaderboard.
+          <span className="field-info">
+            This is the number of spots in the leaderboard.
             </span>
-            <Input
-              type="number"
-              autoFocus
-              className="input"
-              placeholder="Number of spots in the leaderboard"
-              onChange={info =>
-                props.setAttributes({
-                  ...props.attributes,
-                  winnersCount: parseInt(info.target.value),
-                })
-              }
-            />
-          </label>
-        </Col>
-      </Row>
-      <Row>
-        <Button
-          type="primary"
-          size="large"
-          onClick={props.confirm}
-          className="action-btn"
-        >
-          Continue
+          <Input
+            type="number"
+            autoFocus
+            className="input"
+            placeholder="Number of spots in the leaderboard"
+            onChange={info =>
+              props.setAttributes({
+                ...props.attributes,
+                winnersCount: parseInt(info.target.value),
+              })
+            }
+          />
+        </label>
+      </Col>
+    </Row>
+    <Row>
+      <Button
+        type="primary"
+        size="large"
+        onClick={props.confirm}
+        className="action-btn"
+      >
+        Continue
         </Button>
-      </Row>
+    </Row>
     </>
   );
 };
@@ -825,45 +841,45 @@ const SaleTypeStep = (props: {
 }) => {
   return (
     <>
-      <Row className="call-to-action">
-        <h2>Sale Type</h2>
-        <p>Sell a limited copy or copies of a single Master NFT.</p>
-      </Row>
-      <Row className="content-action">
-        <Col className="section" xl={24}>
-          <label className="action-field">
-            <span className="field-title">
-              How do you want to sell your NFT(s)?
+    <Row className="call-to-action">
+      <h2>Sale Type</h2>
+      <p>Sell a limited copy or copies of a single Master NFT.</p>
+    </Row>
+    <Row className="content-action">
+      <Col className="section" xl={24}>
+        <label className="action-field">
+          <span className="field-title">
+            How do you want to sell your NFT(s)?
             </span>
-            <Radio.Group
-              defaultValue={props.attributes.saleType}
-              onChange={info =>
-                props.setAttributes({
-                  ...props.attributes,
-                  saleType: info.target.value,
-                })
-              }
-            >
-              <Radio className="radio-field" value="auction">
-                Auction
+          <Radio.Group
+            defaultValue={props.attributes.saleType}
+            onChange={info =>
+              props.setAttributes({
+                ...props.attributes,
+                saleType: info.target.value,
+              })
+            }
+          >
+            <Radio className="radio-field" value="auction">
+              Auction
               </Radio>
-              <div className="radio-subtitle">
-                Allow bidding on your NFT(s).
+            <div className="radio-subtitle">
+              Allow bidding on your NFT(s).
               </div>
-            </Radio.Group>
-          </label>
-        </Col>
-      </Row>
-      <Row>
-        <Button
-          type="primary"
-          size="large"
-          onClick={props.confirm}
-          className="action-btn"
-        >
-          Continue
+          </Radio.Group>
+        </label>
+      </Col>
+    </Row>
+    <Row>
+      <Button
+        type="primary"
+        size="large"
+        onClick={props.confirm}
+        className="action-btn"
+      >
+        Continue
         </Button>
-      </Row>
+    </Row>
     </>
   );
 };
@@ -875,11 +891,13 @@ const PriceStep = (props: {
 }) => {
   return (
     <>
-      {props.attributes.saleType === 'auction' ? (
+    {
+      props.attributes.saleType === 'auction' ? (
         <PriceAuction {...props} />
       ) : (
-        <PriceSale {...props} />
-      )}
+          <PriceSale {...props} />
+        )
+    }
     </>
   );
 };
@@ -891,43 +909,43 @@ const PriceSale = (props: {
 }) => {
   return (
     <>
-      <Row className="call-to-action">
-        <h2>Price</h2>
-        <p>Set the price for your auction.</p>
-      </Row>
-      <Row className="content-action">
-        <label className="action-field">
-          <span className="field-title">Sale price</span>
-          <span className="field-info">
-            This is the starting bid price for your auction.
+    <Row className="call-to-action">
+      <h2>Price</h2>
+      <p>Set the price for your auction.</p>
+    </Row>
+    <Row className="content-action">
+      <label className="action-field">
+        <span className="field-title">Sale price</span>
+        <span className="field-info">
+          This is the starting bid price for your auction.
           </span>
-          <Input
-            type="number"
-            min={0}
-            autoFocus
-            className="input"
-            placeholder="Price"
-            prefix="◎"
-            suffix="SOL"
-            onChange={info =>
-              props.setAttributes({
-                ...props.attributes,
-                price: parseFloat(info.target.value) || undefined,
-              })
-            }
-          />
-        </label>
-      </Row>
-      <Row>
-        <Button
-          type="primary"
-          size="large"
-          onClick={props.confirm}
-          className="action-btn"
-        >
-          Continue
+        <Input
+          type="number"
+          min={0}
+          autoFocus
+          className="input"
+          placeholder="Price"
+          prefix="◎"
+          suffix="SOL"
+          onChange={info =>
+            props.setAttributes({
+              ...props.attributes,
+              price: parseFloat(info.target.value) || undefined,
+            })
+          }
+        />
+      </label>
+    </Row>
+    <Row>
+      <Button
+        type="primary"
+        size="large"
+        onClick={props.confirm}
+        className="action-btn"
+      >
+        Continue
         </Button>
-      </Row>
+    </Row>
     </>
   );
 };
@@ -939,93 +957,93 @@ const PriceAuction = (props: {
 }) => {
   return (
     <>
-      <Row className="call-to-action">
-        <h2>Price</h2>
-        <p>Set the price for your auction.</p>
-      </Row>
-      <Row className="content-action">
-        <Col className="section" xl={24}>
-          {props.attributes.category === AuctionCategory.Open && (
-            <label className="action-field">
-              <span className="field-title">Price</span>
-              <span className="field-info">
-                This is the fixed price that everybody will pay for your
+    <Row className="call-to-action">
+      <h2>Price</h2>
+      <p>Set the price for your auction.</p>
+    </Row>
+    <Row className="content-action">
+      <Col className="section" xl={24}>
+        {props.attributes.category === AuctionCategory.Open && (
+          <label className="action-field">
+            <span className="field-title">Price</span>
+            <span className="field-info">
+              This is the fixed price that everybody will pay for your
                 Participation NFT.
               </span>
-              <Input
-                type="number"
-                min={0}
-                autoFocus
-                className="input"
-                placeholder="Fixed Price"
-                prefix="◎"
-                suffix="SOL"
-                onChange={info =>
-                  props.setAttributes({
-                    ...props.attributes,
-                    // Do both, since we know this is the only item being sold.
-                    participationFixedPrice: parseFloat(info.target.value),
-                    priceFloor: parseFloat(info.target.value),
-                  })
-                }
-              />
-            </label>
-          )}
-          {props.attributes.category !== AuctionCategory.Open && (
-            <label className="action-field">
-              <span className="field-title">Price Floor</span>
-              <span className="field-info">
-                This is the starting bid price for your auction.
-              </span>
-              <Input
-                type="number"
-                min={0}
-                autoFocus
-                className="input"
-                placeholder="Price"
-                prefix="◎"
-                suffix="SOL"
-                onChange={info =>
-                  props.setAttributes({
-                    ...props.attributes,
-                    priceFloor: parseFloat(info.target.value),
-                  })
-                }
-              />
-            </label>
-          )}
-          <label className="action-field">
-            <span className="field-title">Tick Size</span>
-            <span className="field-info">
-              All bids must fall within this price increment.
-            </span>
             <Input
               type="number"
               min={0}
+              autoFocus
               className="input"
-              placeholder="Tick size in SOL"
+              placeholder="Fixed Price"
               prefix="◎"
               suffix="SOL"
               onChange={info =>
                 props.setAttributes({
                   ...props.attributes,
-                  priceTick: parseFloat(info.target.value),
+                  // Do both, since we know this is the only item being sold.
+                  participationFixedPrice: parseFloat(info.target.value),
+                  priceFloor: parseFloat(info.target.value),
                 })
               }
             />
           </label>
-        </Col>
-      </Row>
-      <Row>
-        <Button
-          type="primary"
-          size="large"
-          onClick={props.confirm}
-          className="action-btn"
-        >
-          Continue
+        )}
+        {props.attributes.category !== AuctionCategory.Open && (
+          <label className="action-field">
+            <span className="field-title">Price Floor</span>
+            <span className="field-info">
+              This is the starting bid price for your auction.
+              </span>
+            <Input
+              type="number"
+              min={0}
+              autoFocus
+              className="input"
+              placeholder="Price"
+              prefix="◎"
+              suffix="SOL"
+              onChange={info =>
+                props.setAttributes({
+                  ...props.attributes,
+                  priceFloor: parseFloat(info.target.value),
+                })
+              }
+            />
+          </label>
+        )}
+        <label className="action-field">
+          <span className="field-title">Tick Size</span>
+          <span className="field-info">
+            All bids must fall within this price increment.
+            </span>
+          <Input
+            type="number"
+            min={0}
+            className="input"
+            placeholder="Tick size in SOL"
+            prefix="◎"
+            suffix="SOL"
+            onChange={info =>
+              props.setAttributes({
+                ...props.attributes,
+                priceTick: parseFloat(info.target.value),
+              })
+            }
+          />
+        </label>
+      </Col>
+    </Row>
+    <Row>
+      <Button
+        type="primary"
+        size="large"
+        onClick={props.confirm}
+        className="action-btn"
+      >
+        Continue
         </Button>
-      </Row>
+    </Row>
     </>
   );
 };
@@ -1079,116 +1097,116 @@ const InitialPhaseStep = (props: {
 
   return (
     <>
-      <Row className="call-to-action">
-        <h2>Initial Phase</h2>
-        <p>Set the terms for your {props.attributes.saleType}.</p>
-      </Row>
-      <Row className="content-action">
-        <Col className="section" xl={24}>
-          <label className="action-field">
-            <span className="field-title">
-              When do you want the {props.attributes.saleType} to begin?
+    <Row className="call-to-action">
+      <h2>Initial Phase</h2>
+      <p>Set the terms for your {props.attributes.saleType}.</p>
+    </Row>
+    <Row className="content-action">
+      <Col className="section" xl={24}>
+        <label className="action-field">
+          <span className="field-title">
+            When do you want the {props.attributes.saleType} to begin?
             </span>
-            <Radio.Group
-              defaultValue="now"
-              onChange={info => setStartNow(info.target.value === 'now')}
-            >
-              <Radio className="radio-field" value="now">
-                Immediately
+          <Radio.Group
+            defaultValue="now"
+            onChange={info => setStartNow(info.target.value === 'now')}
+          >
+            <Radio className="radio-field" value="now">
+              Immediately
               </Radio>
-              <div className="radio-subtitle">
-                Participants can buy the NFT as soon as you finish setting up
+            <div className="radio-subtitle">
+              Participants can buy the NFT as soon as you finish setting up
                 the auction.
               </div>
-              <Radio className="radio-field" value="later">
-                At a specified date
+            <Radio className="radio-field" value="later">
+              At a specified date
               </Radio>
-              <div className="radio-subtitle">
-                Participants can start buying the NFT at a specified date.
+            <div className="radio-subtitle">
+              Participants can start buying the NFT at a specified date.
               </div>
-            </Radio.Group>
+          </Radio.Group>
+        </label>
+
+        {!startNow && (
+            <>
+          <label className="action-field">
+            <span className="field-title">
+              {capitalize(props.attributes.saleType)} Start Date
+                </span>
+            {saleMoment && (
+              <DateTimePicker
+                momentObj={saleMoment}
+                setMomentObj={setSaleMoment}
+                datePickerProps={{
+                  disabledDate: (current: moment.Moment) =>
+                    current && current < moment().endOf('day'),
+                }}
+              />
+            )}
           </label>
 
-          {!startNow && (
-            <>
-              <label className="action-field">
-                <span className="field-title">
-                  {capitalize(props.attributes.saleType)} Start Date
+          <label className="action-field">
+            <span className="field-title">
+              When do you want the listing to go live?
                 </span>
-                {saleMoment && (
-                  <DateTimePicker
-                    momentObj={saleMoment}
-                    setMomentObj={setSaleMoment}
-                    datePickerProps={{
-                      disabledDate: (current: moment.Moment) =>
-                        current && current < moment().endOf('day'),
-                    }}
-                  />
-                )}
-              </label>
-
-              <label className="action-field">
-                <span className="field-title">
-                  When do you want the listing to go live?
-                </span>
-                <Radio.Group
-                  defaultValue="now"
-                  onChange={info => setListNow(info.target.value === 'now')}
-                >
-                  <Radio
-                    className="radio-field"
-                    value="now"
-                    defaultChecked={true}
-                  >
-                    Immediately
+            <Radio.Group
+              defaultValue="now"
+              onChange={info => setListNow(info.target.value === 'now')}
+            >
+              <Radio
+                className="radio-field"
+                value="now"
+                defaultChecked={true}
+              >
+                Immediately
                   </Radio>
-                  <div className="radio-subtitle">
-                    Participants will be able to view the listing with a
+              <div className="radio-subtitle">
+                Participants will be able to view the listing with a
                     countdown to the start date as soon as you finish setting up
                     the sale.
                   </div>
-                  <Radio className="radio-field" value="later">
-                    At a specified date
+              <Radio className="radio-field" value="later">
+                At a specified date
                   </Radio>
-                  <div className="radio-subtitle">
-                    Participants will be able to view the listing with a
+              <div className="radio-subtitle">
+                Participants will be able to view the listing with a
                     countdown to the start date at the specified date.
                   </div>
-                </Radio.Group>
-              </label>
+            </Radio.Group>
+          </label>
 
               {!listNow && (
                 <label className="action-field">
-                  <span className="field-title">Preview Start Date</span>
-                  {listMoment && (
-                    <DateTimePicker
-                      momentObj={listMoment}
-                      setMomentObj={setListMoment}
-                      datePickerProps={{
-                        disabledDate: (current: moment.Moment) =>
-                          current &&
-                          saleMoment &&
-                          (current < moment().endOf('day') ||
-                            current > saleMoment),
-                      }}
-                    />
-                  )}
-                </label>
-              )}
-            </>
+          <span className="field-title">Preview Start Date</span>
+          {listMoment && (
+            <DateTimePicker
+              momentObj={listMoment}
+              setMomentObj={setListMoment}
+              datePickerProps={{
+                disabledDate: (current: moment.Moment) =>
+                  current &&
+                  saleMoment &&
+                  (current < moment().endOf('day') ||
+                    current > saleMoment),
+              }}
+            />
           )}
+        </label>
+        )}
+            </>
+      )}
         </Col>
-      </Row>
-      <Row>
-        <Button
-          type="primary"
-          size="large"
-          onClick={props.confirm}
-          className="action-btn"
-        >
-          Continue
+      </Row >
+  <Row>
+    <Button
+      type="primary"
+      size="large"
+      onClick={props.confirm}
+      className="action-btn"
+    >
+      Continue
         </Button>
-      </Row>
+  </Row>
     </>
   );
 };
@@ -1200,11 +1218,13 @@ const EndingPhaseStep = (props: {
 }) => {
   return (
     <>
-      {props.attributes.saleType === 'auction' ? (
+    {
+      props.attributes.saleType === 'auction' ? (
         <EndingPhaseAuction {...props} />
       ) : (
-        <EndingPhaseSale {...props} />
-      )}
+          <EndingPhaseSale {...props} />
+        )
+    }
     </>
   );
 };
@@ -1216,113 +1236,113 @@ const EndingPhaseAuction = (props: {
 }) => {
   return (
     <>
-      <Row className="call-to-action">
-        <h2>Ending Phase</h2>
-        <p>Set the terms for your auction.</p>
-      </Row>
-      <Row className="content-action">
-        <Col className="section" xl={24}>
-          <div className="action-field">
-            <span className="field-title">Auction Duration</span>
-            <span className="field-info">
-              This is how long the auction will last for.
+    <Row className="call-to-action">
+      <h2>Ending Phase</h2>
+      <p>Set the terms for your auction.</p>
+    </Row>
+    <Row className="content-action">
+      <Col className="section" xl={24}>
+        <div className="action-field">
+          <span className="field-title">Auction Duration</span>
+          <span className="field-info">
+            This is how long the auction will last for.
             </span>
-            <Input
-              addonAfter={
-                <Select
-                  defaultValue={props.attributes.auctionDurationType}
-                  onChange={value =>
-                    props.setAttributes({
-                      ...props.attributes,
-                      auctionDurationType: value,
-                    })
-                  }
-                >
-                  <Option value="minutes">Minutes</Option>
-                  <Option value="hours">Hours</Option>
-                  <Option value="days">Days</Option>
-                </Select>
-              }
-              autoFocus
-              type="number"
-              className="input"
-              placeholder="Set the auction duration"
-              onChange={info =>
-                props.setAttributes({
-                  ...props.attributes,
-                  auctionDuration: parseInt(info.target.value),
-                })
-              }
-            />
-          </div>
+          <Input
+            addonAfter={
+              <Select
+                defaultValue={props.attributes.auctionDurationType}
+                onChange={value =>
+                  props.setAttributes({
+                    ...props.attributes,
+                    auctionDurationType: value,
+                  })
+                }
+              >
+                <Option value="minutes">Minutes</Option>
+                <Option value="hours">Hours</Option>
+                <Option value="days">Days</Option>
+              </Select>
+            }
+            autoFocus
+            type="number"
+            className="input"
+            placeholder="Set the auction duration"
+            onChange={info =>
+              props.setAttributes({
+                ...props.attributes,
+                auctionDuration: parseInt(info.target.value),
+              })
+            }
+          />
+        </div>
 
-          <div className="action-field">
-            <span className="field-title">Gap Time</span>
-            <span className="field-info">
-              The final phase of the auction will begin when there is this much
+        <div className="action-field">
+          <span className="field-title">Gap Time</span>
+          <span className="field-info">
+            The final phase of the auction will begin when there is this much
               time left on the countdown. Any bids placed during the final phase
               will extend the end time by this same duration.
             </span>
-            <Input
-              addonAfter={
-                <Select
-                  defaultValue={props.attributes.gapTimeType}
-                  onChange={value =>
-                    props.setAttributes({
-                      ...props.attributes,
-                      gapTimeType: value,
-                    })
-                  }
-                >
-                  <Option value="minutes">Minutes</Option>
-                  <Option value="hours">Hours</Option>
-                  <Option value="days">Days</Option>
-                </Select>
-              }
-              type="number"
-              className="input"
-              placeholder="Set the gap time"
-              onChange={info =>
-                props.setAttributes({
-                  ...props.attributes,
-                  gapTime: parseInt(info.target.value),
-                })
-              }
-            />
-          </div>
+          <Input
+            addonAfter={
+              <Select
+                defaultValue={props.attributes.gapTimeType}
+                onChange={value =>
+                  props.setAttributes({
+                    ...props.attributes,
+                    gapTimeType: value,
+                  })
+                }
+              >
+                <Option value="minutes">Minutes</Option>
+                <Option value="hours">Hours</Option>
+                <Option value="days">Days</Option>
+              </Select>
+            }
+            type="number"
+            className="input"
+            placeholder="Set the gap time"
+            onChange={info =>
+              props.setAttributes({
+                ...props.attributes,
+                gapTime: parseInt(info.target.value),
+              })
+            }
+          />
+        </div>
 
-          <label className="action-field">
-            <span className="field-title">Tick Size for Ending Phase</span>
-            <span className="field-info">
-              In order for winners to move up in the auction, they must place a
+        <label className="action-field">
+          <span className="field-title">Tick Size for Ending Phase</span>
+          <span className="field-info">
+            In order for winners to move up in the auction, they must place a
               bid that’s at least this percentage higher than the next highest
               bid.
             </span>
-            <Input
-              type="number"
-              className="input"
-              placeholder="Percentage"
-              suffix="%"
-              onChange={info =>
-                props.setAttributes({
-                  ...props.attributes,
-                  tickSizeEndingPhase: parseInt(info.target.value),
-                })
-              }
-            />
-          </label>
-        </Col>
-      </Row>
-      <Row>
-        <Button
-          type="primary"
-          size="large"
-          onClick={props.confirm}
-          className="action-btn"
-        >
-          Continue
+          <Input
+            type="number"
+            className="input"
+            placeholder="Percentage"
+            suffix="%"
+            onChange={info =>
+              props.setAttributes({
+                ...props.attributes,
+                tickSizeEndingPhase: parseInt(info.target.value),
+              })
+            }
+          />
+        </label>
+      </Col>
+    </Row>
+    <Row>
+      <Button
+        type="primary"
+        size="large"
+        onClick={props.confirm}
+        className="action-btn"
+      >
+        Continue
         </Button>
-      </Row>
+    </Row>
     </>
   );
 };
@@ -1354,63 +1374,63 @@ const EndingPhaseSale = (props: {
 
   return (
     <>
-      <Row className="call-to-action">
-        <h2>Ending Phase</h2>
-        <p>Set the terms for your sale.</p>
-      </Row>
-      <Row className="content-action">
-        <Col className="section" xl={24}>
-          <label className="action-field">
-            <span className="field-title">
-              When do you want the sale to end?
+    <Row className="call-to-action">
+      <h2>Ending Phase</h2>
+      <p>Set the terms for your sale.</p>
+    </Row>
+    <Row className="content-action">
+      <Col className="section" xl={24}>
+        <label className="action-field">
+          <span className="field-title">
+            When do you want the sale to end?
             </span>
-            <Radio.Group
-              defaultValue="now"
-              onChange={info => setUntilSold(info.target.value === 'now')}
-            >
-              <Radio className="radio-field" value="now">
-                Until sold
+          <Radio.Group
+            defaultValue="now"
+            onChange={info => setUntilSold(info.target.value === 'now')}
+          >
+            <Radio className="radio-field" value="now">
+              Until sold
               </Radio>
-              <div className="radio-subtitle">
-                The sale will end once the supply goes to zero.
+            <div className="radio-subtitle">
+              The sale will end once the supply goes to zero.
               </div>
-              <Radio className="radio-field" value="later">
-                At a specified date
+            <Radio className="radio-field" value="later">
+              At a specified date
               </Radio>
-              <div className="radio-subtitle">
-                The sale will end at this date, regardless if there is remaining
+            <div className="radio-subtitle">
+              The sale will end at this date, regardless if there is remaining
                 supply.
               </div>
-            </Radio.Group>
-          </label>
+          </Radio.Group>
+        </label>
 
-          {!untilSold && (
-            <label className="action-field">
-              <span className="field-title">End Date</span>
-              {endMoment && (
-                <DateTimePicker
-                  momentObj={endMoment}
-                  setMomentObj={setEndMoment}
-                  datePickerProps={{
-                    disabledDate: (current: moment.Moment) =>
-                      current && current < startMoment,
-                  }}
-                />
-              )}
-            </label>
-          )}
-        </Col>
-      </Row>
-      <Row>
-        <Button
-          type="primary"
-          size="large"
-          onClick={props.confirm}
-          className="action-btn"
-        >
-          Continue
+        {!untilSold && (
+          <label className="action-field">
+            <span className="field-title">End Date</span>
+            {endMoment && (
+              <DateTimePicker
+                momentObj={endMoment}
+                setMomentObj={setEndMoment}
+                datePickerProps={{
+                  disabledDate: (current: moment.Moment) =>
+                    current && current < startMoment,
+                }}
+              />
+            )}
+          </label>
+        )}
+      </Col>
+    </Row>
+    <Row>
+      <Button
+        type="primary"
+        size="large"
+        onClick={props.confirm}
+        className="action-btn"
+      >
+        Continue
         </Button>
-      </Row>
+    </Row>
     </>
   );
 };
@@ -1435,264 +1455,265 @@ const TierTableStep = (props: {
   }
   return (
     <>
-      <Row className="call-to-action">
-        <h2>Add Winning Tiers and Their Prizes</h2>
-        <p>
-          Each row represents a tier. You can choose which winning spots get
+    <Row className="call-to-action">
+      <h2>Add Winning Tiers and Their Prizes</h2>
+      <p>
+        Each row represents a tier. You can choose which winning spots get
           which tiers.
         </p>
-      </Row>
+    </Row>
       {props.attributes.tiers.map((wcg, configIndex) => (
-        <Row className="content-action" key={configIndex}>
-          <Col xl={24}>
-            <h3>Tier #{configIndex + 1} Basket</h3>
-          </Col>
+    <Row className="content-action" key={configIndex}>
+      <Col xl={24}>
+        <h3>Tier #{configIndex + 1} Basket</h3>
+      </Col>
 
-          <Checkbox.Group
-            options={options}
-            onChange={value => {
-              const newTiers = newImmutableTiers(props.attributes.tiers);
-              const myNewTier = newTiers[configIndex];
-              myNewTier.winningSpots = value.map(i => i.valueOf() as number);
+      <Checkbox.Group
+        options={options}
+        onChange={value => {
+          const newTiers = newImmutableTiers(props.attributes.tiers);
+          const myNewTier = newTiers[configIndex];
+          myNewTier.winningSpots = value.map(i => i.valueOf() as number);
 
-              props.setAttributes({
-                ...props.attributes,
-                tiers: newTiers,
-              });
-            }}
-          />
+          props.setAttributes({
+            ...props.attributes,
+            tiers: newTiers,
+          });
+        }}
+      />
 
-          {wcg.items.map((i, itemIndex) => (
-            <Col className="section" xl={8} key={itemIndex}>
-              <Card>
-                <ArtSelector
-                  filter={artistFilter}
-                  selected={
-                    (i as TierDummyEntry).safetyDepositBoxIndex !== undefined
-                      ? [
-                          props.attributes.items[
-                            (i as TierDummyEntry).safetyDepositBoxIndex
-                          ],
-                        ]
-                      : []
+      {wcg.items.map((i, itemIndex) => (
+        <Col className="section" xl={8} key={itemIndex}>
+          <Card>
+            <ArtSelector
+              filter={artistFilter}
+              selected={
+                (i as TierDummyEntry).safetyDepositBoxIndex !== undefined
+                  ? [
+                    props.attributes.items[
+                    (i as TierDummyEntry).safetyDepositBoxIndex
+                    ],
+                  ]
+                  : []
+              }
+              setSelected={items => {
+                const newItems = [
+                  ...props.attributes.items.map(it => ({ ...it })),
+                ];
+
+                const newTiers = newImmutableTiers(props.attributes.tiers);
+                if (items[0]) {
+                  const existing = props.attributes.items.find(
+                    it => it.metadata.pubkey === items[0].metadata.pubkey,
+                  );
+                  if (!existing) newItems.push(items[0]);
+                  const index = newItems.findIndex(
+                    it => it.metadata.pubkey === items[0].metadata.pubkey,
+                  );
+
+                  const myNewTier = newTiers[configIndex].items[itemIndex];
+                  myNewTier.safetyDepositBoxIndex = index;
+                  if (
+                    items[0].masterEdition &&
+                    items[0].masterEdition.info.key ==
+                    MetadataKey.MasterEditionV1
+                  ) {
+                    myNewTier.winningConfigType =
+                      WinningConfigType.PrintingV1;
+                  } else if (
+                    items[0].masterEdition &&
+                    items[0].masterEdition.info.key ==
+                    MetadataKey.MasterEditionV2
+                  ) {
+                    myNewTier.winningConfigType =
+                      WinningConfigType.PrintingV2;
+                  } else {
+                    myNewTier.winningConfigType =
+                      WinningConfigType.TokenOnlyTransfer;
                   }
-                  setSelected={items => {
-                    const newItems = [
-                      ...props.attributes.items.map(it => ({ ...it })),
-                    ];
+                  myNewTier.amount = 1;
+                } else if (
+                  (i as TierDummyEntry).safetyDepositBoxIndex !== undefined
+                ) {
+                  const myNewTier = newTiers[configIndex];
+                  myNewTier.items.splice(itemIndex, 1);
+                  if (myNewTier.items.length === 0)
+                    newTiers.splice(configIndex, 1);
+                  const othersWithSameItem = newTiers.find(c =>
+                    c.items.find(
+                      it =>
+                        it.safetyDepositBoxIndex ===
+                        (i as TierDummyEntry).safetyDepositBoxIndex,
+                    ),
+                  );
 
-                    const newTiers = newImmutableTiers(props.attributes.tiers);
-                    if (items[0]) {
-                      const existing = props.attributes.items.find(
-                        it => it.metadata.pubkey === items[0].metadata.pubkey,
-                      );
-                      if (!existing) newItems.push(items[0]);
-                      const index = newItems.findIndex(
-                        it => it.metadata.pubkey === items[0].metadata.pubkey,
-                      );
-
-                      const myNewTier = newTiers[configIndex].items[itemIndex];
-                      myNewTier.safetyDepositBoxIndex = index;
-                      if (
-                        items[0].masterEdition &&
-                        items[0].masterEdition.info.key ==
-                          MetadataKey.MasterEditionV1
-                      ) {
-                        myNewTier.winningConfigType =
-                          WinningConfigType.PrintingV1;
-                      } else if (
-                        items[0].masterEdition &&
-                        items[0].masterEdition.info.key ==
-                          MetadataKey.MasterEditionV2
-                      ) {
-                        myNewTier.winningConfigType =
-                          WinningConfigType.PrintingV2;
-                      } else {
-                        myNewTier.winningConfigType =
-                          WinningConfigType.TokenOnlyTransfer;
-                      }
-                      myNewTier.amount = 1;
-                    } else if (
-                      (i as TierDummyEntry).safetyDepositBoxIndex !== undefined
+                  if (!othersWithSameItem) {
+                    for (
+                      let j =
+                        (i as TierDummyEntry).safetyDepositBoxIndex + 1;
+                      j < props.attributes.items.length;
+                      j++
                     ) {
-                      const myNewTier = newTiers[configIndex];
-                      myNewTier.items.splice(itemIndex, 1);
-                      if (myNewTier.items.length === 0)
-                        newTiers.splice(configIndex, 1);
-                      const othersWithSameItem = newTiers.find(c =>
-                        c.items.find(
-                          it =>
-                            it.safetyDepositBoxIndex ===
-                            (i as TierDummyEntry).safetyDepositBoxIndex,
-                        ),
+                      newTiers.forEach(c =>
+                        c.items.forEach(it => {
+                          if (it.safetyDepositBoxIndex === j)
+                            it.safetyDepositBoxIndex--;
+                        }),
                       );
-
-                      if (!othersWithSameItem) {
-                        for (
-                          let j =
-                            (i as TierDummyEntry).safetyDepositBoxIndex + 1;
-                          j < props.attributes.items.length;
-                          j++
-                        ) {
-                          newTiers.forEach(c =>
-                            c.items.forEach(it => {
-                              if (it.safetyDepositBoxIndex === j)
-                                it.safetyDepositBoxIndex--;
-                            }),
-                          );
-                        }
-                        newItems.splice(
-                          (i as TierDummyEntry).safetyDepositBoxIndex,
-                          1,
-                        );
-                      }
                     }
+                    newItems.splice(
+                      (i as TierDummyEntry).safetyDepositBoxIndex,
+                      1,
+                    );
+                  }
+                }
 
-                    props.setAttributes({
-                      ...props.attributes,
-                      items: newItems,
-                      tiers: newTiers,
-                    });
-                  }}
-                  allowMultiple={false}
-                >
-                  Select item
+                props.setAttributes({
+                  ...props.attributes,
+                  items: newItems,
+                  tiers: newTiers,
+                });
+              }}
+              allowMultiple={false}
+            >
+              Select item
                 </ArtSelector>
 
-                {(i as TierDummyEntry).winningConfigType !== undefined && (
+            {(i as TierDummyEntry).winningConfigType !== undefined && (
                   <>
-                    <Select
-                      defaultValue={(i as TierDummyEntry).winningConfigType}
-                      style={{ width: 120 }}
-                      onChange={value => {
-                        const newTiers = newImmutableTiers(
-                          props.attributes.tiers,
-                        );
+              <Select
+                defaultValue={(i as TierDummyEntry).winningConfigType}
+                style={{ width: 120 }}
+                onChange={value => {
+                  const newTiers = newImmutableTiers(
+                    props.attributes.tiers,
+                  );
 
-                        const myNewTier =
-                          newTiers[configIndex].items[itemIndex];
+                  const myNewTier =
+                    newTiers[configIndex].items[itemIndex];
 
-                        // Legacy hack...
-                        if (
-                          value == WinningConfigType.PrintingV2 &&
-                          myNewTier.safetyDepositBoxIndex &&
-                          props.attributes.items[
-                            myNewTier.safetyDepositBoxIndex
-                          ].masterEdition?.info.key ==
-                            MetadataKey.MasterEditionV1
+                  // Legacy hack...
+                  if (
+                    value == WinningConfigType.PrintingV2 &&
+                      myNewTier.safetyDepositBoxIndex &&
+                      props.attributes.items[
+                        myNewTier.safetyDepositBoxIndex
+                      ].masterEdition ?.info.key ==
+                      MetadataKey.MasterEditionV1
                         ) {
-                          value = WinningConfigType.PrintingV1;
-                        }
-                        myNewTier.winningConfigType = value;
-                        props.setAttributes({
-                          ...props.attributes,
-                          tiers: newTiers,
-                        });
-                      }}
-                    >
-                      <Option value={WinningConfigType.FullRightsTransfer}>
-                        Full Rights Transfer
+                    value = WinningConfigType.PrintingV1;
+                  }
+                  myNewTier.winningConfigType = value;
+                  props.setAttributes({
+                    ...props.attributes,
+                    tiers: newTiers,
+                  });
+                }}
+              >
+                <Option value={WinningConfigType.FullRightsTransfer}>
+                  Full Rights Transfer
                       </Option>
-                      <Option value={WinningConfigType.TokenOnlyTransfer}>
-                        Token Only Transfer
+                <Option value={WinningConfigType.TokenOnlyTransfer}>
+                  Token Only Transfer
                       </Option>
-                      <Option value={WinningConfigType.PrintingV2}>
-                        Printing V2
+                <Option value={WinningConfigType.PrintingV2}>
+                  Printing V2
                       </Option>
 
-                      <Option value={WinningConfigType.PrintingV1}>
-                        Printing V1
+                <Option value={WinningConfigType.PrintingV1}>
+                  Printing V1
                       </Option>
-                    </Select>
+              </Select>
 
                     {((i as TierDummyEntry).winningConfigType ===
                       WinningConfigType.PrintingV1 ||
                       (i as TierDummyEntry).winningConfigType ===
                         WinningConfigType.PrintingV2) && (
                       <label className="action-field">
-                        <span className="field-title">
-                          How many copies do you want to create for each winner?
+              <span className="field-title">
+                How many copies do you want to create for each winner?
                           If you put 2, then each winner will get 2 copies.
                         </span>
-                        <span className="field-info">
-                          Each copy will be given unique edition number e.g. 1
+              <span className="field-info">
+                Each copy will be given unique edition number e.g. 1
                           of 30
                         </span>
-                        <Input
-                          autoFocus
-                          className="input"
-                          placeholder="Enter number of copies sold"
-                          allowClear
-                          onChange={info => {
-                            const newTiers = newImmutableTiers(
-                              props.attributes.tiers,
-                            );
+              <Input
+                autoFocus
+                className="input"
+                placeholder="Enter number of copies sold"
+                allowClear
+                onChange={info => {
+                  const newTiers = newImmutableTiers(
+                    props.attributes.tiers,
+                  );
 
-                            const myNewTier =
-                              newTiers[configIndex].items[itemIndex];
-                            myNewTier.amount = parseInt(info.target.value);
-                            props.setAttributes({
-                              ...props.attributes,
-                              tiers: newTiers,
-                            });
-                          }}
-                        />
-                      </label>
-                    )}
+                  const myNewTier =
+                    newTiers[configIndex].items[itemIndex];
+                  myNewTier.amount = parseInt(info.target.value);
+                  props.setAttributes({
+                    ...props.attributes,
+                    tiers: newTiers,
+                  });
+                }}
+              />
+            </label>
+            )}
                   </>
-                )}
+          )}
               </Card>
             </Col>
           ))}
           <Col xl={4}>
-            <Button
-              type="primary"
-              size="large"
-              onClick={() => {
-                const newTiers = newImmutableTiers(props.attributes.tiers);
-                const myNewTier = newTiers[configIndex];
-                myNewTier.items.push({});
-                props.setAttributes({
-                  ...props.attributes,
-                  tiers: newTiers,
-                });
-              }}
-              className="action-btn"
-            >
-              <PlusCircleOutlined />
-            </Button>
-          </Col>
-        </Row>
-      ))}
-      <Row>
-        <Col xl={24}>
-          <Button
-            type="primary"
-            size="large"
-            onClick={() => {
-              const newTiers = newImmutableTiers(props.attributes.tiers);
-              newTiers.push({ items: [], winningSpots: [] });
-              props.setAttributes({
-                ...props.attributes,
-                tiers: newTiers,
-              });
-            }}
-            className="action-btn"
-          >
-            <PlusCircleOutlined />
-          </Button>
-        </Col>
-      </Row>
-      <Row>
         <Button
           type="primary"
           size="large"
-          onClick={props.confirm}
+          onClick={() => {
+            const newTiers = newImmutableTiers(props.attributes.tiers);
+            const myNewTier = newTiers[configIndex];
+            myNewTier.items.push({});
+            props.setAttributes({
+              ...props.attributes,
+              tiers: newTiers,
+            });
+          }}
           className="action-btn"
         >
-          Continue to Review
+          <PlusCircleOutlined />
         </Button>
-      </Row>
+      </Col>
+    </Row>
+  ))
+  }
+  <Row>
+    <Col xl={24}>
+      <Button
+        type="primary"
+        size="large"
+        onClick={() => {
+          const newTiers = newImmutableTiers(props.attributes.tiers);
+          newTiers.push({ items: [], winningSpots: [] });
+          props.setAttributes({
+            ...props.attributes,
+            tiers: newTiers,
+          });
+        }}
+        className="action-btn"
+      >
+        <PlusCircleOutlined />
+      </Button>
+    </Col>
+  </Row>
+    <Row>
+      <Button
+        type="primary"
+        size="large"
+        onClick={props.confirm}
+        className="action-btn"
+      >
+        Continue to Review
+        </Button>
+    </Row>
     </>
   );
 };
@@ -1704,68 +1725,68 @@ const ParticipationStep = (props: {
 }) => {
   return (
     <>
-      <Row className="call-to-action">
-        <h2>Participation NFT</h2>
-        <p>
-          Provide NFT that will be awarded as an Open Edition NFT for auction
+    <Row className="call-to-action">
+      <h2>Participation NFT</h2>
+      <p>
+        Provide NFT that will be awarded as an Open Edition NFT for auction
           participation.
         </p>
-      </Row>
-      <Row className="content-action">
-        <Col className="section" xl={24}>
-          <ArtSelector
-            filter={(i: SafetyDepositDraft) =>
-              !!i.masterEdition && i.masterEdition.info.maxSupply === undefined
-            }
-            selected={
-              props.attributes.participationNFT
-                ? [props.attributes.participationNFT]
-                : []
-            }
-            setSelected={items => {
-              props.setAttributes({
-                ...props.attributes,
-                participationNFT: items[0],
-              });
-            }}
-            allowMultiple={false}
-          >
-            Select Participation NFT
+    </Row>
+    <Row className="content-action">
+      <Col className="section" xl={24}>
+        <ArtSelector
+          filter={(i: SafetyDepositDraft) =>
+            !!i.masterEdition && i.masterEdition.info.maxSupply === undefined
+          }
+          selected={
+            props.attributes.participationNFT
+              ? [props.attributes.participationNFT]
+              : []
+          }
+          setSelected={items => {
+            props.setAttributes({
+              ...props.attributes,
+              participationNFT: items[0],
+            });
+          }}
+          allowMultiple={false}
+        >
+          Select Participation NFT
           </ArtSelector>
-          <label className="action-field">
-            <span className="field-title">Price</span>
-            <span className="field-info">
-              This is an optional fixed price that non-winners will pay for your
+        <label className="action-field">
+          <span className="field-title">Price</span>
+          <span className="field-info">
+            This is an optional fixed price that non-winners will pay for your
               Participation NFT.
             </span>
-            <Input
-              type="number"
-              min={0}
-              autoFocus
-              className="input"
-              placeholder="Fixed Price"
-              prefix="◎"
-              suffix="SOL"
-              onChange={info =>
-                props.setAttributes({
-                  ...props.attributes,
-                  participationFixedPrice: parseFloat(info.target.value),
-                })
-              }
-            />
-          </label>
-        </Col>
-      </Row>
-      <Row>
-        <Button
-          type="primary"
-          size="large"
-          onClick={props.confirm}
-          className="action-btn"
-        >
-          Continue to Review
+          <Input
+            type="number"
+            min={0}
+            autoFocus
+            className="input"
+            placeholder="Fixed Price"
+            prefix="◎"
+            suffix="SOL"
+            onChange={info =>
+              props.setAttributes({
+                ...props.attributes,
+                participationFixedPrice: parseFloat(info.target.value),
+              })
+            }
+          />
+        </label>
+      </Col>
+    </Row>
+    <Row>
+      <Button
+        type="primary"
+        size="large"
+        onClick={props.confirm}
+        className="action-btn"
+      >
+        Continue to Review
         </Button>
-      </Row>
+    </Row>
     </>
   );
 };
@@ -1786,90 +1807,90 @@ const ReviewStep = (props: {
     // TODO: add
   }, [setCost]);
 
-  let item = props.attributes.items?.[0];
+  let item = props.attributes.items ?.[0];
 
   return (
     <>
-      <Row className="call-to-action">
-        <h2>Review and list</h2>
-        <p>Review your listing before publishing.</p>
-      </Row>
-      <Row className="content-action">
-        <Col xl={12}>
-          {item?.metadata.info && (
-            <ArtCard pubkey={item.metadata.pubkey} small={true} />
-          )}
-        </Col>
-        <Col className="section" xl={12}>
-          <Statistic
-            className="create-statistic"
-            title="Copies"
-            value={
-              props.attributes.editions === undefined
-                ? 'Unique'
-                : props.attributes.editions
-            }
-          />
-          {cost ? (
-            <AmountLabel title="Cost to Create" amount={cost} />
-          ) : (
+    <Row className="call-to-action">
+      <h2>Review and list</h2>
+      <p>Review your listing before publishing.</p>
+    </Row>
+    <Row className="content-action">
+      <Col xl={12}>
+        {item ?.metadata.info && (
+          <ArtCard pubkey={item.metadata.pubkey} small={true} />
+        )}
+      </Col>
+      <Col className="section" xl={12}>
+        <Statistic
+          className="create-statistic"
+          title="Copies"
+          value={
+            props.attributes.editions === undefined
+              ? 'Unique'
+              : props.attributes.editions
+          }
+        />
+        {cost ? (
+          <AmountLabel title="Cost to Create" amount={cost} />
+        ) : (
             <Spin />
           )}
-        </Col>
-      </Row>
-      <Row style={{ display: 'block' }}>
-        <Divider />
+      </Col>
+    </Row>
+    <Row style={{ display: 'block' }}>
+      <Divider />
+      <Statistic
+        className="create-statistic"
+        title="Start date"
+        value={
+          props.attributes.startSaleTS
+            ? moment
+              .unix(props.attributes.startSaleTS as number)
+              .format('dddd, MMMM Do YYYY, h:mm a')
+            : 'Right after successfully published'
+        }
+      />
+      <br />
+      {props.attributes.startListTS && (
         <Statistic
           className="create-statistic"
-          title="Start date"
-          value={
-            props.attributes.startSaleTS
-              ? moment
-                  .unix(props.attributes.startSaleTS as number)
-                  .format('dddd, MMMM Do YYYY, h:mm a')
-              : 'Right after successfully published'
-          }
+          title="Listing go live date"
+          value={moment
+            .unix(props.attributes.startListTS as number)
+            .format('dddd, MMMM Do YYYY, h:mm a')}
         />
-        <br />
-        {props.attributes.startListTS && (
-          <Statistic
-            className="create-statistic"
-            title="Listing go live date"
-            value={moment
-              .unix(props.attributes.startListTS as number)
-              .format('dddd, MMMM Do YYYY, h:mm a')}
-          />
-        )}
-        <Divider />
-        <Statistic
-          className="create-statistic"
-          title="Sale ends"
-          value={
-            props.attributes.endTS
-              ? moment
-                  .unix(props.attributes.endTS as number)
-                  .format('dddd, MMMM Do YYYY, h:mm a')
-              : 'Until sold'
-          }
-        />
-      </Row>
-      <Row>
-        <Button
-          type="primary"
-          size="large"
-          onClick={() => {
-            props.setAttributes({
-              ...props.attributes,
-              startListTS: props.attributes.startListTS || moment().unix(),
-              startSaleTS: props.attributes.startSaleTS || moment().unix(),
-            });
-            props.confirm();
-          }}
-          className="action-btn"
-        >
-          Publish Auction
+      )}
+      <Divider />
+      <Statistic
+        className="create-statistic"
+        title="Sale ends"
+        value={
+          props.attributes.endTS
+            ? moment
+              .unix(props.attributes.endTS as number)
+              .format('dddd, MMMM Do YYYY, h:mm a')
+            : 'Until sold'
+        }
+      />
+    </Row>
+    <Row>
+      <Button
+        type="primary"
+        size="large"
+        onClick={() => {
+          props.setAttributes({
+            ...props.attributes,
+            startListTS: props.attributes.startListTS || moment().unix(),
+            startSaleTS: props.attributes.startSaleTS || moment().unix(),
+          });
+          props.confirm();
+        }}
+        className="action-btn"
+      >
+        Publish Auction
         </Button>
-      </Row>
+    </Row>
     </>
   );
 };
@@ -1924,8 +1945,8 @@ const Congrats = (props: {
     const params = {
       text: "I've created a new NFT auction on Metaplex, check it out!",
       url: `${
-        window.location.origin
-      }/#/auction/${props.auction?.auction.toString()}`,
+      window.location.origin
+      }/#/auction/${props.auction ?.auction.toString()}`,
       hashtags: 'NFT,Crypto,Metaplex',
       // via: "Metaplex",
       related: 'Metaplex,Solana',
@@ -1936,37 +1957,37 @@ const Congrats = (props: {
 
   return (
     <>
-      <div
-        style={{
-          marginTop: 70,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <div className="waiting-title">
-          Congratulations! Your auction is now live.
+    <div
+      style={{
+        marginTop: 70,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <div className="waiting-title">
+        Congratulations! Your auction is now live.
         </div>
-        <div className="congrats-button-container">
-          <Button
-            className="metaplex-button"
-            onClick={_ => window.open(newTweetURL(), '_blank')}
-          >
-            <span>Share it on Twitter</span>
-            <span>&gt;</span>
-          </Button>
-          <Button
-            className="metaplex-button"
-            onClick={_ =>
-              history.push(`/auction/${props.auction?.auction.toString()}`)
-            }
-          >
-            <span>See it in your auctions</span>
-            <span>&gt;</span>
-          </Button>
-        </div>
+      <div className="congrats-button-container">
+        <Button
+          className="metaplex-button"
+          onClick={_ => window.open(newTweetURL(), '_blank')}
+        >
+          <span>Share it on Twitter</span>
+          <span>&gt;</span>
+        </Button>
+        <Button
+          className="metaplex-button"
+          onClick={_ =>
+            history.push(`/auction/${props.auction ?.auction.toString()}`)
+          }
+        >
+          <span>See it in your auctions</span>
+          <span>&gt;</span>
+        </Button>
       </div>
-      <Confetti />
+    </div>
+    <Confetti />
     </>
   );
 };
